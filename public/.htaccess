@@ -1,6 +1,8 @@
+AddHandler php-fcgid .php
+Action php-fcgid /php-fcgi/php-8.1.8.fcgi
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
+        Options -MultiViews 
     </IfModule>
 
     RewriteEngine On
