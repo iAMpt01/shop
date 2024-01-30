@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('product_id');
             $table->string('sku');
-            $table->string('color_description');
-            $table->string('color_group');
+            $table->string('color_description')->nullable();
+            $table->string('color_group')->nullable();
             $table->string('size_textile')->nullable();
             $table->timestamps();
             
