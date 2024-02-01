@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('sku');
             $table->string('color_description')->nullable();
             $table->string('color_group')->nullable();
+            $table->decimal('price')->nullable();
             $table->string('size_textile')->nullable();
             $table->timestamps();
             

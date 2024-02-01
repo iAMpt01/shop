@@ -18,7 +18,6 @@ return new class extends Migration
             $table->text('short_description')->nullable();
             $table->text('long_description')->nullable();
             $table->string('dimensions')->nullable();
-            $table->decimal('price')->nullable();
             $table->string('brand')->nullable();
             $table->string('country_of_origin')->nullable();
             $table->string('material')->nullable();
