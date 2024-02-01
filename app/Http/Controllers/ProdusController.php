@@ -11,51 +11,23 @@ use SimpleXMLElement;
 
 class ProdusController extends Controller {
 
-    private function convertToLeiFromEuro($priceInEuro) {
-        
-    $response = Http::get('https://www.bnr.ro/nbrfxrates.xml');
-    $xml = new SimpleXMLElement($response->body());
-
-    foreach ($xml->Body->Cube->Rate as $rate) {
-        if ((string) $rate['currency'] === 'EUR') {
-            $euroToRonRate = (float) $rate;
-            break;
-        }
-    }
-
-    $priceInLei = $priceInEuro * $euroToRonRate;
-
-    return number_format($priceInLei, 2, '.', '');
-}
     /**
      * Display a listing of the resource.
      */
     public function index() {
-        $produse = Product::paginate(40);
+        $combinations = Combination::paginate(40);
 
-        foreach ($produse as $produs) {
-            $combination = Combination::where('product_id', $produs->id)->first();
+        foreach ($combinations as $combination) {
+            $product = Product::where('id', $combination->product_id)->first();
+            $combination->product = $product;
 
-            if ($combination) {
-                $produs->pret = $combination->price;
-
-                $image = Image::where('combination_id', $combination->id)->first();
-
-                if ($image) {
-                    $produs->image_url = $image->url;
-                } else {
-                    $produs->image_url = 'image.jpg';
-                }
-            } else {
-                $produs->pret = 0;
-                $produs->image_url = 'image.jpg';
-            }
-            
-            $produs->pret_in_lei = $this->convertToLeiFromEuro($produs->pret);
+            $images = Image::where('combination_id', $combination->id)->get();
+            $combination->images = $images;
         }
 
+        //dd($combinations[0]);
         return view('produse.index', [
-            'produse' => $produse
+            'combinations' => $combinations
         ]);
     }
 
@@ -77,35 +49,17 @@ class ProdusController extends Controller {
      * Display the specified resource.
      */
     public function show(string $id) {
-        $produs = Product::find($id);
+        $combination = Combination::findOrFail($id);
+        $product = Product::where('id', $combination->product_id)->first();
+        $combination->product = $product;
 
-        if ($produs) {
-            $combination = Combination::where('product_id', $produs->id)->first();
+        $images = Image::where('combination_id', $combination->id)->get();
+        $combination->images=$images;
 
-            if ($combination) {
-                $produs->pret = $combination->price;
-
-                $image = Image::where('combination_id', $combination->id)->first();
-
-                if ($image) {
-                    $produs->image_url = $image->url_highress;
-                } else {
-                    $produs->image_url = 'Imaginea nu a fost gasita';
-                }
-            } else {
-                $produs->pret = 0;
-                $produs->image_url = 'Imaginea nu a fost gasita';
-            }
-            $produs->pret_in_lei = $this->convertToLeiFromEuro($produs->pret);
-
-            return view('produse.show', [
-                'produs' => $produs
-            ]);
-        } else {
-            abort(404, 'Produsul nu a fost găsit');
-        }
+        return view('produse.show', [
+            'combination' => $combination
+        ]);
     }
-    
 
     /**
      * Show the form for editing the specified resource.
