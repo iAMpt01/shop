@@ -6,9 +6,27 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Combination;
 use App\Models\Image;
+use Illuminate\Support\Facades\Http;
+use SimpleXMLElement;
 
 class ProdusController extends Controller {
 
+    private function convertToLeiFromEuro($priceInEuro) {
+        
+    $response = Http::get('https://www.bnr.ro/nbrfxrates.xml');
+    $xml = new SimpleXMLElement($response->body());
+
+    foreach ($xml->Body->Cube->Rate as $rate) {
+        if ((string) $rate['currency'] === 'EUR') {
+            $euroToRonRate = (float) $rate;
+            break;
+        }
+    }
+
+    $priceInLei = $priceInEuro * $euroToRonRate;
+
+    return number_format($priceInLei, 2, '.', '');
+}
     /**
      * Display a listing of the resource.
      */
@@ -32,6 +50,8 @@ class ProdusController extends Controller {
                 $produs->pret = 0;
                 $produs->image_url = 'image.jpg';
             }
+            
+            $produs->pret_in_lei = $this->convertToLeiFromEuro($produs->pret);
         }
 
         return view('produse.index', [
@@ -59,32 +79,33 @@ class ProdusController extends Controller {
     public function show(string $id) {
         $produs = Product::find($id);
 
-    if ($produs) {
-        $combination = Combination::where('product_id', $produs->id)->first();
+        if ($produs) {
+            $combination = Combination::where('product_id', $produs->id)->first();
 
-        if ($combination) {
-            $produs->pret = $combination->price;
+            if ($combination) {
+                $produs->pret = $combination->price;
 
-            $image = Image::where('combination_id', $combination->id)->first();
+                $image = Image::where('combination_id', $combination->id)->first();
 
-            if ($image) {
-                $produs->image_url = $image->url_highress;
+                if ($image) {
+                    $produs->image_url = $image->url_highress;
+                } else {
+                    $produs->image_url = 'Imaginea nu a fost gasita';
+                }
             } else {
+                $produs->pret = 0;
                 $produs->image_url = 'Imaginea nu a fost gasita';
             }
+            $produs->pret_in_lei = $this->convertToLeiFromEuro($produs->pret);
+
+            return view('produse.show', [
+                'produs' => $produs
+            ]);
         } else {
-            $produs->pret = 0;
-            $produs->image_url = 'Imaginea nu a fost gasita';
+            abort(404, 'Produsul nu a fost găsit');
         }
-
-        return view('produse.show', [
-            'produs' => $produs
-        ]);
-    } else {
-        abort(404, 'Produsul nu a fost găsit');
     }
-
-    }
+    
 
     /**
      * Show the form for editing the specified resource.

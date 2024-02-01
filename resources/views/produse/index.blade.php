@@ -10,7 +10,7 @@
           <div class="card-body">
            <a href="{{ route('produse.show', [$produs->id]) }}" class="card-title">{{$produs->name}}</a>
             <p class="card-text">{{$produs->short_description}}</p>
-            <p class="card-text fw-bold">Pret: {{$produs->pret}}</p>
+             <p class="card-text fw-bold">Pret: {{$produs->pret_in_lei}} Lei</p>
           </div>
         </div>
     </div>
